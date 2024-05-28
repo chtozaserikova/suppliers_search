@@ -1,0 +1,10 @@
+Django
+django-opensearch-dsl
+djangorestframework
+opensearch
+opensearch-dsl
+psycopg2
+haystack
+django-haystack
+django-cors-headers
+pandas

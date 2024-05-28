@@ -1,0 +1,7 @@
+{{ object.product_name }}
+{{ object.product_price }}
+{{ object.product_desc }}
+{{ object.product_company }}
+{{ object.inn }}
+{{ object.ogrn }}
+{{ object.okpd2 }}
