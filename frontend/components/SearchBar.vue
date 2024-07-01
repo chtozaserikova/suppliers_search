@@ -26,7 +26,6 @@ export default {
         if (response.ok) {
           const data = await response.json();
           this.results = data.results;
-          console.log(data.results)
         } else {
           console.error("Ошибка сервера:", response.status, response.statusText);
         }

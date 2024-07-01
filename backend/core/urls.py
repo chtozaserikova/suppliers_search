@@ -10,8 +10,5 @@ urlpatterns = [
     path('search/', search, name='search'),
     path('okpd_search/', okpd_search, name='okpd_search'), 
     path('get_recommendation/', get_recommendation, name='get_recommendation'),
-    # path('inn/<int:inn>/<str:agent>/', get_inn_recommendations, name='get_inn_recommendations'),
-    # path('category-recommendations/', category_recommendations_view, name='category_recommendations'),
-
     path("", include(router.urls))
 ]

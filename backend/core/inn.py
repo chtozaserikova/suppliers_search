@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import numpy as np
 import os
+import random
 
 DATA_PATH = r'C:\Users\Sveta\Downloads\zakupki\data'
 
@@ -16,7 +17,7 @@ def avaliability_of_inn(inn):
     rnp = list(rnp['inn'].values)
 
     if inn in inn_not_recomended:
-        return "Не рекомендуем проводить сделку! \nДанный агент не может принимать участие в торгах из-за отсутвия всех лицензий или невыполнения критериев 44 ФЗ"
+        return "Не рекомендуем проводить сделку! \nДанный агент не может принимать участие в торгах из-за отсутствия лицензий или невыполнения критериев 44 ФЗ"
 
     if inn in rnp:
         return "Не рекомендуем проводить сделку! \nДанный агент внесен в список недобросовестных"
@@ -35,7 +36,7 @@ def score_inn_without_history(inn):
     if inn not in list(bo_final_dataset['inn'].values):
         return "Не рекомендуем агента. Недостаточно информации", 0
     else:
-        if bo_final_dataset.loc[bo_final_dataset['inn'] == inn, 'unappropriated_balance'].values[0] < -100_000:
+        if bo_final_dataset.loc[bo_final_dataset['inn'] == inn, 'unappropriated_balance'].values[0] < -1_000:
             return "Не рекомендуем агента. Компания в большом убытке", 0
         elif (bo_final_dataset.loc[bo_final_dataset['inn'] == inn, 'avg_staff_qty'].values[0] <= 5) and \
                 (bo_final_dataset.loc[bo_final_dataset['inn'] == inn, 'bo_balance'].values[0] == 0):
@@ -72,25 +73,36 @@ def score_inn_with_history(inn, is_supplier):
     contracts_aggr_inn = contracts_aggr.loc[contracts_aggr['inn'] == inn]
     return f"У данного {agent} средняя удовлетворенность по {contracts_aggr_inn['id_contract'].values[0]} сделкам равна {contracts_aggr_inn['quality'].values[0]}%"
 
+def assign_supplier_category(rec):
+    if 'Рекомендуем' in rec:
+        return random.choice(['AAA', 'AA+', 'AA', 'AA–', 'A+', 'A', 'A–', 'BBB+', 'BBB'])
+    else:
+        return random.choice(['BBB–', 'BB+', 'BB', 'BB–', 'B+', 'B', 'B–', 'CCC'])
+    
 def main_estimation(inn, is_supplier):
     print(inn, is_supplier)
     if is_supplier:
-        contracts_aggr = pd.read_csv(os.path.join(
-            DATA_PATH, 'contracts_aggr_supplier.csv'))
+        contracts_aggr = pd.read_csv(os.path.join(DATA_PATH, 'contracts_aggr_supplier.csv'))
     else:
-        contracts_aggr = pd.read_csv(os.path.join(
-            DATA_PATH, 'contracts_aggr_customer.csv'))
+        contracts_aggr = pd.read_csv(os.path.join(DATA_PATH, 'contracts_aggr_customer.csv'))
 
     if contracts_aggr.query(f'inn == "{inn}"').shape[0] < 2:
-        return '<b>Возможность проводить сделку:</b> \n' + avaliability_of_inn(inn=inn) + \
-            'У данного агента крайне малая история сделок. \n <b>Рекомендации на основе финансовых показателей:</b> \n' + \
-            score_inn_without_history(inn=inn)[0], int(
-                score_inn_without_history(inn=inn)[1])
+        result_text = (
+            '<u>Возможность проводить сделку:</u> <br>' + avaliability_of_inn(inn=inn).replace('\n', '<br>') + '<br>' +
+            'У данного агента крайне малая история сделок. <br><br>' +
+            '<u>Рекомендации на основе финансовых показателей:</u> <br>' + 
+            score_inn_without_history(inn=inn)[0].replace('\n', '<br>')
+        )
     else:
-        return '<b>Возможность проводить сделку:</b> \n' + avaliability_of_inn(inn=inn) + '\n' + score_inn_with_history(inn, is_supplier)[0], int(score_inn_with_history(inn, is_supplier)[1])
+        result_text = (
+             '<u>Возможность проводить сделку:</u> <br>' + avaliability_of_inn(inn=inn).replace('\n', '<br>') + '<br><br>' +
+            score_inn_with_history(inn, is_supplier)[0].replace('\n', '<br>')
+        )
+
+    return result_text, int(score_inn_without_history(inn=inn)[1]) if contracts_aggr.query(f'inn == "{inn}"').shape[0] < 2 else int(score_inn_with_history(inn, is_supplier)[1])
 
 
-async def get_inn_reccomends(inn: int, agent: str):
+def get_inn_reccomends(inn: int, agent: str):
     """Рекомендации по ИНН
 
     Args:

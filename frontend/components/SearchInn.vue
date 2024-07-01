@@ -22,7 +22,11 @@
     </div>
     <div v-if="recommendation" class="mt-4">
       <p class="text-lg font-semibold">Рекомендация:</p>
-      <p>{{ recommendation }}</p>
+      <p v-html="recommendation"></p>
+    </div>
+    <div v-if="category" class="mt-4">
+      <p class="text-lg font-semibold">Категория поставщика:</p>
+      <p>{{ category }}</p>
     </div>
     <div class="mt-4 flex justify-center relative">
       <canvas id="ratingChart" width="400" height="400"></canvas>
@@ -43,7 +47,8 @@ export default {
       relationship: 'agent',
       recommendation: '',
       suggestions: [],
-      rating: null
+      rating: null, 
+      category: '',
     };
   },
   computed: {
@@ -82,6 +87,7 @@ export default {
           const data = await response.json();
           this.recommendation = data.recommendations;
           this.rating = data.rating;
+          this.category = data.category;
           this.drawRatingChart(data.rating);
         } else {
           console.error("Ошибка сервера:", response.status, response.statusText);

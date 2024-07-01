@@ -15,6 +15,9 @@
     <ul v-if="results.length">
       <li v-for="result in results" :key="result">{{ result }}</li>
     </ul>
+    <ul v-if="results.length">
+      <li v-for="result in results" :key="result.row_number">{{ result.product_name }}</li>
+    </ul>
     <!-- Список сохраненных поисковых запросов -->
     <ul v-if="searchStore.searchHistory.length" class="mt-4 pr-2 flex flex-wrap">
       <li v-for="(query, index) in searchStore.searchHistory" :key="index">
@@ -37,10 +40,10 @@
     </div>
   </form>
   <div v-if="results && results.length" class="flex flex-wrap">
-    <div v-for="result in results" :key="result.row_number" class="flex flex-row p-2">
-      <Card :item="result"/>
-    </div>
+  <div v-for="result in results" :key="result.row_number" class="flex flex-row p-2">
+    <Card :item="result"/>
   </div>
+</div>
 </template>
 
 <script>
@@ -90,7 +93,8 @@ export default {
         searchStore.setQuery(query.value);
         router.push({ name: 'index', query: { q: query.value.trim() } });
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/suppliers2/?search=' + encodeURIComponent(query.value.trim()));
+          const response = await fetch('http://127.0.0.1:8000/api/suppliers/?search=' + encodeURIComponent(query.value.trim()));
+          const data = await response.json();
           if (response.ok) {
             const data = await response.json();
             this.results = data.results;
